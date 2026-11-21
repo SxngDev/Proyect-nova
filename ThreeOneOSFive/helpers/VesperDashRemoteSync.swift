@@ -800,8 +800,8 @@ final class NOVARemoteDocumentSyncStore: ObservableObject {
 
     private static func stored(_ record: ActiveRecord) -> NOVAStoredDocument {
         NOVAStoredDocument(
-            id: record.id, filename: record.filename, sizeBytes: record.sizeBytes,
-            updatedAt: record.updatedAt, version: record.version, sha256: record.sha256,
+            id: record.id, filename: record.filename, version: record.version,
+            sha256: record.sha256, sizeBytes: record.sizeBytes, updatedAt: record.updatedAt,
             isAvailable: false, statusText: ""
         )
     }
@@ -815,9 +815,9 @@ final class NOVARemoteDocumentSyncStore: ObservableObject {
             status = remote.displayStatusText.isEmpty ? "Available" : remote.displayStatusText
         }
         return NOVAStoredDocument(
-            id: remote.id, filename: remote.filename, sizeBytes: remote.size ?? 0,
-            updatedAt: updatedAtToken(remote.updated_at), version: remote.version,
-            sha256: remote.sha256, isAvailable: available, statusText: status
+            id: remote.id, filename: remote.filename, version: remote.version,
+            sha256: remote.sha256, sizeBytes: remote.size ?? 0,
+            updatedAt: updatedAtToken(remote.updated_at), isAvailable: available, statusText: status
         )
     }
 
