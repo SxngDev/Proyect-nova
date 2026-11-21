@@ -3,8 +3,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 BUILD_DIR="$ROOT/build"
-ARCHIVE="$BUILD_DIR/NOVA-Build-60.xcarchive"
-IPA="$BUILD_DIR/NOVA-Build-60-unsigned.ipa"
+ARCHIVE="$BUILD_DIR/NOVA-Build-61.xcarchive"
+IPA="$BUILD_DIR/NOVA-Build-61-unsigned.ipa"
 echo "Building repository revision: $(git -C "$ROOT" rev-parse --short HEAD)"
 
 NOVA_API_BASE_URL="${NOVA_API_BASE_URL:-}"

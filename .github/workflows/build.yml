@@ -42,13 +42,13 @@ jobs:
           chmod +x build_unsigned.sh build_esign_ready_ipa.sh
           ./build_unsigned.sh
       - name: Verify unsigned IPA is ready for signing
-        run: ./build_esign_ready_ipa.sh build/NOVA-Build-60-unsigned.ipa
+        run: ./build_esign_ready_ipa.sh build/NOVA-Build-61-unsigned.ipa
       - name: Verify app identity and NOVA URL
         run: |
           set -euo pipefail
           rm -rf "$RUNNER_TEMP/nova-ipa-check"
           mkdir -p "$RUNNER_TEMP/nova-ipa-check"
-          unzip -q build/NOVA-Build-60-unsigned.ipa -d "$RUNNER_TEMP/nova-ipa-check"
+          unzip -q build/NOVA-Build-61-unsigned.ipa -d "$RUNNER_TEMP/nova-ipa-check"
           APP_DIR="$(find "$RUNNER_TEMP/nova-ipa-check/Payload" -maxdepth 1 -name '*.app' -type d -print -quit)"
           test "$(basename "$APP_DIR")" = "NOVA.app"
           test -f "$APP_DIR/SAK"
@@ -59,13 +59,13 @@ jobs:
           assert info['CFBundleDisplayName'] == 'NOVA'
           assert info['NOVA_API_BASE_URL'] == sys.argv[2]
           assert info['CFBundleExecutable'] == 'SAK'
-          assert info['CFBundleVersion'] == '60'
+          assert info['CFBundleVersion'] == '61'
           PY
           python3 embed_app_resources.py --verify "$APP_DIR"
       - name: Upload unsigned IPA
         uses: actions/upload-artifact@v4
         with:
-          name: NOVA-Build-60-unsigned-IPA
-          path: build/NOVA-Build-60-unsigned.ipa
+          name: NOVA-Build-61-unsigned-IPA
+          path: build/NOVA-Build-61-unsigned.ipa
           if-no-files-found: error
           retention-days: 30

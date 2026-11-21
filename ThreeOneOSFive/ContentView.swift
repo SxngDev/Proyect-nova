@@ -212,7 +212,11 @@ struct ContentView: View {
                 targetTitle: selectedPatchTargetTitle,
                 targetBundleID: selectedPatchBundleID
             )
-            NOVAReceivedDocumentsCard(shouldSyncOnReentry: selectedAppTab == 0)
+            NOVAReceivedDocumentsCard(
+                shouldSyncOnReentry: selectedAppTab == 0,
+                onApplied: { PatchAudioFeedback.bypassActivated() },
+                onRestored: { PatchAudioFeedback.originalRestored() }
+            )
         }
     }
 

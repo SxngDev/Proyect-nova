@@ -4,6 +4,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 REMOTE = (ROOT / "ThreeOneOSFive/helpers/VesperDashRemoteSync.swift").read_text()
 SERVICE = (ROOT / "ThreeOneOSFive/helpers/DevicePatchService.swift").read_text()
+CONTENT = (ROOT / "ThreeOneOSFive/ContentView.swift").read_text()
 
 
 class NOVARemotePackageContractTests(unittest.TestCase):
@@ -38,6 +39,26 @@ class NOVARemotePackageContractTests(unittest.TestCase):
         deactivate = REMOTE[deactivate_start:deactivate_end]
         self.assertIn("try await restore(record)", deactivate)
         self.assertIn("if let directory = try? managedDirectory", deactivate)
+
+    def test_nova_card_syncs_when_first_shown(self):
+        card_start = REMOTE.index("struct NOVAReceivedDocumentsCard")
+        card = REMOTE[card_start:]
+        self.assertIn(".onAppear {", card)
+        self.assertIn("if shouldSyncOnReentry { syncNow() }", card)
+
+    def test_nova_switch_plays_feedback_only_after_store_success(self):
+        store_start = REMOTE.index("func setApplied(")
+        store_end = REMOTE.index("func deactivate()", store_start)
+        operation = REMOTE[store_start:store_end]
+        self.assertIn("async -> Bool", operation)
+        self.assertIn("return false", operation)
+        self.assertIn("return true", operation)
+        self.assertIn("guard succeeded else { return }", REMOTE)
+        self.assertIn("if desiredState { onApplied() } else { onRestored() }", REMOTE)
+        self.assertIn("onApplied: { PatchAudioFeedback.bypassActivated() }", CONTENT)
+        self.assertIn("onRestored: { PatchAudioFeedback.originalRestored() }", CONTENT)
+        self.assertIn('static func bypassActivated() { play(resource: "ACTIVADA", ext: "m4a") }', CONTENT)
+        self.assertIn('static func originalRestored() { play(resource: "DESACTIVADA", ext: "m4a") }', CONTENT)
 
 
 if __name__ == "__main__":

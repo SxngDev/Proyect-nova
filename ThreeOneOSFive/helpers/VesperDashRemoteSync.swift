@@ -556,10 +556,10 @@ final class NOVARemoteDocumentSyncStore: ObservableObject {
         }
     }
 
-    func setApplied(_ shouldApply: Bool, document: NOVAStoredDocument, sessionToken: String?) async {
+    func setApplied(_ shouldApply: Bool, document: NOVAStoredDocument, sessionToken: String?) async -> Bool {
         let id = document.id
-        guard !operatingDocumentIDs.contains(id), !recoveryRequiredDocumentIDs.contains(id) else { return }
-        if shouldApply == appliedDocumentIDs.contains(id) { return }
+        guard !operatingDocumentIDs.contains(id), !recoveryRequiredDocumentIDs.contains(id) else { return false }
+        if shouldApply == appliedDocumentIDs.contains(id) { return false }
         operatingDocumentIDs.insert(id)
         operationStatusKeys.removeValue(forKey: id)
         operationErrorDescriptions.removeValue(forKey: id)
@@ -575,7 +575,7 @@ final class NOVARemoteDocumentSyncStore: ObservableObject {
             } else {
                 guard let record = activeRecords[id] else {
                     appliedDocumentIDs.remove(id)
-                    return
+                    return false
                 }
                 try await restore(record)
                 activeRecords.removeValue(forKey: id)
@@ -585,6 +585,7 @@ final class NOVARemoteDocumentSyncStore: ObservableObject {
                 operationStatusKeys.removeValue(forKey: id)
                 operationErrorDescriptions.removeValue(forKey: id)
             }
+            return true
         } catch {
             if let record = activeRecords[id] {
                 let exact = record.transactionID.flatMap {
@@ -610,6 +611,7 @@ final class NOVARemoteDocumentSyncStore: ObservableObject {
             }
             operationStatusKeys[id] = Self.statusKey(for: error)
             operationErrorDescriptions[id] = error.localizedDescription
+            return false
         }
     }
 
@@ -925,6 +927,8 @@ final class NOVARemoteDocumentSyncStore: ObservableObject {
 @MainActor
 struct NOVAReceivedDocumentsCard: View {
     let shouldSyncOnReentry: Bool
+    let onApplied: () -> Void
+    let onRestored: () -> Void
 
     @Environment(\.appLanguage) private var appLanguage
     @Environment(\.scenePhase) private var scenePhase
@@ -1040,6 +1044,9 @@ struct NOVAReceivedDocumentsCard: View {
         .clipShape(NOVAChamferedShape(cut: 18))
         .overlay(NOVAChamferedShape(cut: 18).stroke(.white.opacity(0.20), lineWidth: 1))
         .shadow(color: NOVAControlPalette.red.opacity(0.15), radius: 14, x: 0, y: 7)
+        .onAppear {
+            if shouldSyncOnReentry { syncNow() }
+        }
         .onChange(of: shouldSyncOnReentry) { shouldSync in
             if shouldSync { syncNow() }
         }
@@ -1130,11 +1137,13 @@ struct NOVAReceivedDocumentsCard: View {
                     get: { store.appliedDocumentIDs.contains(file.id) },
                     set: { desiredState in
                         Task {
-                            await store.setApplied(
+                            let succeeded = await store.setApplied(
                                 desiredState,
                                 document: file,
                                 sessionToken: licenseManager.clientSessionToken()
                             )
+                            guard succeeded else { return }
+                            if desiredState { onApplied() } else { onRestored() }
                         }
                     }
                 )) {

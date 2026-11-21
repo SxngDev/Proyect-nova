@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-IPA="${1:-$ROOT/build/NOVA-Build-60-unsigned.ipa}"
+IPA="${1:-$ROOT/build/NOVA-Build-61-unsigned.ipa}"
 
 if ! command -v unzip >/dev/null 2>&1; then
   echo "Error: unzip is required." >&2
